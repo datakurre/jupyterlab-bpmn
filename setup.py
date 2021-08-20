@@ -40,7 +40,7 @@ setup_args = dict(
     description="A JupyterLab extension for rendering BPMN files",
     long_description= long_description,
     long_description_content_type="text/markdown",
-    packages=setuptools.find_packages(name.replace("-", "_")),
+    packages=setuptools.find_packages(),
     install_requires=[
         "jupyterlab~=3.0",
     ],
