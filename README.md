@@ -1,6 +1,6 @@
 # jupyterlab-bpmn
 
-![Github Actions Status](https://github.com/datakurre/jupyterlab-bpmn/workflows/Build/badge.svg)[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/datakurre/jupyterlab-bpmn/master?urlpath=lab)
+![Github Actions Status](https://github.com/datakurre/jupyterlab-bpmn/workflows/Build/badge.svg)[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/datakurre/jupyterlab-bpmn/main?urlpath=lab)
 
 A JupyterLab extension for rendering BPMN files
 
