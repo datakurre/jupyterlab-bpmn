@@ -4,7 +4,7 @@ node_modules/
 *.egg-info/
 .ipynb_checkpoints
 *.tsbuildinfo
-jupyterlab-bpmn/labextension
+jupyterlab_bpmn/labextension
 jupyterlab/
 .idea/
 

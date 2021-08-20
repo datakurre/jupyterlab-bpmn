@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-bpmn",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A JupyterLab extension for rendering BPMN files",
   "keywords": [
     "jupyter",
@@ -32,7 +32,7 @@
     "build:lib": "tsc",
     "clean": "npm run clean:lib",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
-    "clean:labextension": "rimraf jupyterlab-bpmn/labextension",
+    "clean:labextension": "rimraf jupyterlab_bpmn/labextension",
     "clean:all": "npm run clean:lib && npm run clean:labextension",
     "eslint": "eslint . --ext .ts,.tsx --fix",
     "eslint:check": "eslint . --ext .ts,.tsx",
@@ -68,6 +68,6 @@
   ],
   "jupyterlab": {
     "mimeExtension": true,
-    "outputDir": "jupyterlab-bpmn/labextension"
+    "outputDir": "jupyterlab_bpmn/labextension"
   }
 }
