@@ -3,8 +3,9 @@ import { IRenderMime } from '@jupyterlab/rendermime-interfaces';
 import { Widget } from '@lumino/widgets';
 
 import BpmnViewer from 'bpmn-js/lib/NavigatedViewer';
-import tooltips from 'diagram-js/lib/features/tooltips';
-import robotExtensionModule from './RobotModule';
+import ModelingModule from 'bpmn-js/lib/features/modeling';
+import TooltipsModule from 'diagram-js/lib/features/tooltips';
+import RobotModule from './RobotModule';
 
 /**
  * The default mime type for the extension.
@@ -33,28 +34,52 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
    * Render bpmn into this widget's node.
    */
   async renderModel(model: IRenderMime.IMimeModel): Promise<void> {
-    this._bpmn = new BpmnViewer({
-      additionalModules: [robotExtensionModule, tooltips],
-    });
     try {
-      const config = JSON.parse(
-        (model.data['application/bpmn+json'] as string) || '{}'
-      );
-      await this._bpmn.importXML(model.data[this._mimeType]);
-      if (config.style) {
-        for (const name of Object.keys(config.style)) {
-          this.node.style.setProperty(name, config.style[name]);
+      if (!this._bpmn) {
+        this._bpmn = new BpmnViewer({
+          additionalModules: [RobotModule, ModelingModule, TooltipsModule],
+        });
+      }
+      if (
+        model.data[this._mimeType] &&
+        model.data[this._mimeType] !== this._xml
+      ) {
+        this._xml = model.data[this._mimeType] as string;
+        await this._bpmn.importXML(this._xml);
+        this._bpmn.get('canvas').zoom('fit-viewport');
+      }
+      if (this._bpmn) {
+        this._bpmn.attachTo(this.node);
+        const config = JSON.parse(
+          (model.data['application/bpmn+json'] as string) || '{}'
+        );
+        if (config.style) {
+          for (const name of Object.keys(config.style)) {
+            this.node.style.setProperty(name, config.style[name]);
+            if (name === 'height') {
+              this._bpmn.get('canvas').zoom('fit-viewport');
+            }
+          }
+        }
+        if (config.colors) {
+          const modeling = this._bpmn.get('modeling');
+          const registry = this._bpmn.get('elementRegistry');
+          for (const name of Object.keys(config.colors)) {
+            const colors = config.colors[name];
+            const element = registry.get(name);
+            if (element) {
+              modeling.setColor(element, colors);
+            }
+          }
         }
       }
-      this._bpmn.attachTo(this.node);
-      const canvas = this._bpmn.get('canvas');
-      canvas.zoom('fit-viewport');
     } catch (e) {
       this.node.textContent = `${e}`;
     }
     return Promise.resolve();
   }
 
+  private _xml: string;
   private _bpmn: any;
   private _mimeType: string;
 }
