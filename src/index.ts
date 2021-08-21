@@ -35,6 +35,7 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
    */
   async renderModel(model: IRenderMime.IMimeModel): Promise<void> {
     try {
+      let resize = false;
       if (!this._bpmn) {
         this._bpmn = new BpmnViewer({
           additionalModules: [RobotModule, ModelingModule, TooltipsModule],
@@ -46,7 +47,7 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
       ) {
         this._xml = model.data[this._mimeType] as string;
         await this._bpmn.importXML(this._xml);
-        this._bpmn.get('canvas').zoom('fit-viewport');
+        resize = true;
       }
       if (this._bpmn) {
         this._bpmn.attachTo(this.node);
@@ -57,7 +58,7 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
           for (const name of Object.keys(config.style)) {
             this.node.style.setProperty(name, config.style[name]);
             if (name === 'height') {
-              this._bpmn.get('canvas').zoom('fit-viewport');
+              resize = true;
             }
           }
         }
@@ -72,9 +73,12 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
             }
           }
         }
+        if (resize) {
+          this._bpmn.get('canvas').zoom('fit-viewport');
+        }
       }
     } catch (e) {
-      this.node.textContent = `${e}`;
+      console.warn(e);
     }
     return Promise.resolve();
   }
