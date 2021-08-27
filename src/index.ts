@@ -35,11 +35,12 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
    */
   async renderModel(model: IRenderMime.IMimeModel): Promise<void> {
     try {
-      let resize = false;
+      let changed = false;
       if (!this._bpmn) {
         this._bpmn = new BpmnViewer({
           additionalModules: [RobotModule, ModelingModule, TooltipsModule],
         });
+        changed = true;
       }
       if (
         model.data[this._mimeType] &&
@@ -47,10 +48,19 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
       ) {
         this._xml = model.data[this._mimeType] as string;
         await this._bpmn.importXML(this._xml);
-        resize = true;
+        changed = true;
+      }
+      if (
+        model.data['application/bpmn+json'] &&
+        model.data['application/bpmn+json'] !== this._json
+      ) {
+        this._json = model.data['application/bpmn+json'] as string;
+        changed = true;
       }
       if (this._bpmn) {
         this._bpmn.attachTo(this.node);
+      }
+      if (this._bpmn && changed) {
         const config = JSON.parse(
           (model.data['application/bpmn+json'] as string) || '{}'
         );
@@ -58,7 +68,7 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
           for (const name of Object.keys(config.style)) {
             this.node.style.setProperty(name, config.style[name]);
             if (name === 'height') {
-              resize = true;
+              changed = true;
             }
           }
         }
@@ -73,9 +83,22 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
             }
           }
         }
-        if (resize) {
-          this._bpmn.get('canvas').zoom('fit-viewport');
-        }
+        const svg: string = await new Promise((resolve, reject) => {
+          this._bpmn.saveSVG((err: any, svg: string) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(svg);
+            }
+          });
+        });
+        model.setData({
+          data: {
+            ...model.data,
+            'image/svg+xml': svg,
+          },
+          metadata: model.metadata,
+        });
       }
     } catch (e) {
       console.warn(e);
@@ -84,6 +107,7 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
   }
 
   private _xml: string;
+  private _json: string;
   private _bpmn: any;
   private _mimeType: string;
 }
@@ -103,7 +127,7 @@ export const rendererFactory: IRenderMime.IRendererFactory = {
 const extension: IRenderMime.IExtension = {
   id: 'jupyterlab-bpmn:plugin',
   rendererFactory,
-  rank: 100,
+  rank: 70, // svg is 80, png 90
   dataType: 'string',
   fileTypes: [
     {
