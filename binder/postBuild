@@ -38,6 +38,9 @@ _(sys.executable, "-m", "pip", "install", ".")
 # verify the environment the extension didn't break anything
 _(sys.executable, "-m", "pip", "check")
 
+# install related packages
+_(sys.executable, "-m", "pip", "install", "jupyterlab-dmn")
+
 # list the extensions
 _("jupyter", "server", "extension", "list")
 
