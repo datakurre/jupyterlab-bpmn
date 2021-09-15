@@ -36,6 +36,7 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
   async renderModel(model: IRenderMime.IMimeModel): Promise<void> {
     try {
       let changed = false;
+      let resized = false;
       if (!this._bpmn) {
         this._bpmn = new BpmnViewer({
           additionalModules: [RobotModule, ModelingModule, TooltipsModule],
@@ -67,10 +68,27 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
         if (config.style) {
           for (const name of Object.keys(config.style)) {
             this.node.style.setProperty(name, config.style[name]);
-            if (name === 'height') {
-              changed = true;
+            if (name === 'height' && config.style[name] !== this._height) {
+              this._height = config.style[name];
+              resized = true;
             }
           }
+        }
+        if (this._bpmn && config.zoom) {
+          if (config.zoom !== this._zoom) {
+            const registry = this._bpmn.get('elementRegistry');
+            if (registry.get(config.zoom)) {
+              this._bpmn.get('canvas').zoom(1.0, registry.get(config.zoom));
+            } else {
+              this._bpmn.get('canvas').zoom('fit-viewport', 'auto');
+              if (config.zoom !== 'fit-viewport') {
+                this._bpmn.get('canvas').zoom(config.zoom, 'auto');
+              }
+            }
+            this._zoom = config.zoom;
+          }
+        } else if (this._bpmn && resized) {
+          this._bpmn.get('canvas').zoom('fit-viewport', 'auto');
         }
         if (config.colors) {
           const modeling = this._bpmn.get('modeling');
@@ -109,6 +127,8 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
   private _xml: string;
   private _json: string;
   private _bpmn: any;
+  private _height: string;
+  private _zoom: string;
   private _mimeType: string;
 }
 
