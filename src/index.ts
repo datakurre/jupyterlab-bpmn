@@ -6,6 +6,10 @@ import BpmnViewer from 'bpmn-js/lib/NavigatedViewer';
 import ModelingModule from 'bpmn-js/lib/features/modeling';
 import TooltipsModule from 'diagram-js/lib/features/tooltips';
 import RobotModule from './RobotModule';
+import {clearSequenceFlow, renderActivities, renderSequenceFlow} from './utils';
+
+import camundaExtensionModule from 'camunda-bpmn-moddle/lib';
+import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json';
 
 /**
  * The default mime type for the extension.
@@ -39,7 +43,15 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
       let resized = false;
       if (!this._bpmn) {
         this._bpmn = new BpmnViewer({
-          additionalModules: [RobotModule, ModelingModule, TooltipsModule],
+          additionalModules: [
+            camundaExtensionModule,
+            RobotModule,
+            ModelingModule,
+            TooltipsModule,
+          ],
+          moddleExtensions: {
+            camunda: camundaModdle,
+          },
         });
         changed = true;
       }
@@ -65,6 +77,12 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
         const config = JSON.parse(
           (model.data['application/bpmn+json'] as string) || '{}'
         );
+        if (config.activities) {
+          renderActivities(this._bpmn, config.activities);
+          const flow = this._flow || [];
+          this._flow = renderSequenceFlow(this._bpmn, config.activities);
+          clearSequenceFlow(flow);
+        }
         if (config.style) {
           for (const name of Object.keys(config.style)) {
             this.node.style.setProperty(name, config.style[name]);
@@ -127,6 +145,7 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
   private _xml: string;
   private _json: string;
   private _bpmn: any;
+  private _flow: any;
   private _height: string;
   private _zoom: string;
   private _mimeType: string;
