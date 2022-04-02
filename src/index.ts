@@ -6,7 +6,11 @@ import BpmnViewer from 'bpmn-js/lib/NavigatedViewer';
 import ModelingModule from 'bpmn-js/lib/features/modeling';
 import TooltipsModule from 'diagram-js/lib/features/tooltips';
 import RobotModule from './RobotModule';
-import {clearSequenceFlow, renderActivities, renderSequenceFlow} from './utils';
+import {
+  clearSequenceFlow,
+  renderActivities,
+  renderSequenceFlow,
+} from './utils';
 
 import camundaExtensionModule from 'camunda-bpmn-moddle/lib';
 import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json';
