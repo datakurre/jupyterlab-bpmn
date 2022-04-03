@@ -243,30 +243,42 @@ export const clearSequenceFlow = (nodes: any[]) => {
   }
 };
 
-export const renderActivities = (viewer: any, activities: any[]) => {
-  const counter: Record<string, number> = {};
+export const renderActivities = (
+  viewer: any,
+  activities: any[],
+  incidents: any[]
+) => {
+  const historic: Record<string, number> = {};
   const active: Record<string, number> = {};
+  const incident: Record<string, number> = {};
+  const message: Record<string, string> = {};
+
   for (const activity of activities) {
     const id = activity.activityId;
-    counter[id] = counter[id] ? counter[id] + 1 : 1;
+    historic[id] = historic[id] ? historic[id] + 1 : 1;
     if (!activity.endTime) {
       active[id] = active[id] ? active[id] + 1 : 1;
     }
   }
 
-  const seen: Record<string, boolean> = {};
+  for (const incident_ of incidents) {
+    const id = incident_.activityId;
+    active[id] = active[id] ? active[id] + 1 : 1;
+    incident[id] = incident[id] ? incident[id] + 1 : 1;
+    message[id] = message[id]
+      ? `${message[id]}\n${incident_.incidentMessage || ''}`.replace(
+          /\s+$/g,
+          ''
+        )
+      : `${incident_.incidentMessage || ''}`.replace(/\s+$/g, '');
+  }
+
   const overlays = viewer.get('overlays');
   const old: any[] = overlays.get({ type: 'badge' });
-  for (const activity of activities) {
-    const id = activity.activityId;
-    if (seen[id]) {
-      continue;
-    } else {
-      seen[id] = true;
-    }
 
+  for (const id of Object.keys(historic)) {
     const overlay = document.createElement('span');
-    overlay.innerText = `${counter[id]}`;
+    overlay.innerText = `${historic[id]}`;
     overlay.className = 'badge';
     overlay.style.cssText = `
 background: lightgray;
@@ -285,18 +297,18 @@ vertical-align: middle;
 border-radius: 10px;
  `;
     overlays.add(id.split('#')[0], 'badge', {
-      position: {
+        position: {
         bottom: 17,
         right: 10,
       },
       html: overlay,
     });
-
-    if (active[id]) {
-      const activeOverlay = document.createElement('span');
-      activeOverlay.innerText = `${active[id]}`;
-      activeOverlay.className = 'badge';
-      activeOverlay.style.cssText = `
+  }
+  for (const id of Object.keys(active)) {
+    const activeOverlay = document.createElement('span');
+    activeOverlay.innerText = `${active[id]}`;
+    activeOverlay.className = 'badge';
+    activeOverlay.style.cssText = `
 background: #70b8db;
 border: 1px solid #143d52;
 color: #143d52;
@@ -312,12 +324,42 @@ white-space: nowrap;
 vertical-align: middle;
 border-radius: 10px;
  `;
+    overlays.add(id.split('#')[0], 'badge', {
+      position: {
+        bottom: 17,
+        left: -10,
+      },
+      html: activeOverlay,
+    });
+  }
+  for (const id of Object.keys(incident)) {
+    if (incident[id]) {
+      const incidentOverlay = document.createElement('span');
+      incidentOverlay.innerText = `${incident[id]}`;
+      incidentOverlay.title = `${message[id]}`;
+      incidentOverlay.className = 'badge';
+      incidentOverlay.style.cssText = `
+background: #b94a48;
+border: 1px solid #140808;
+color: #ffffff;
+
+display: inline-block;
+min-width: 10px;
+padding: 3px 7px;
+font-size: 12px;
+font-weight: bold;
+line-height: 1;
+text-align: center;
+white-space: nowrap;
+vertical-align: middle;
+border-radius: 10px;
+ `;
       overlays.add(id.split('#')[0], 'badge', {
         position: {
           bottom: 17,
-          left: -10,
+          right: 10,
         },
-        html: activeOverlay,
+        html: incidentOverlay,
       });
     }
   }

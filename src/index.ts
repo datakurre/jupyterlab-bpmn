@@ -81,8 +81,14 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
         const config = JSON.parse(
           (model.data['application/bpmn+json'] as string) || '{}'
         );
+        if (config.activities || config.incidents) {
+          renderActivities(
+            this._bpmn,
+            config?.activities || [],
+            config?.incidents || []
+          );
+        }
         if (config.activities) {
-          renderActivities(this._bpmn, config.activities);
           const flow = this._flow || [];
           this._flow = renderSequenceFlow(this._bpmn, config.activities);
           clearSequenceFlow(flow);
