@@ -129,15 +129,7 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
             }
           }
         }
-        const svg: string = await new Promise((resolve, reject) => {
-          this._bpmn.saveSVG((err: any, svg: string) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(svg);
-            }
-          });
-        });
+        const svg: string = await this._bpmn.saveSVG();
         model.setData({
           data: {
             ...model.data,
