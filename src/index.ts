@@ -11,8 +11,8 @@ import {
   renderActivities,
   renderSequenceFlow,
 } from './utils';
+import html2canvas from 'html2canvas';
 
-import camundaExtensionModule from 'camunda-bpmn-moddle/lib';
 import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json';
 
 /**
@@ -48,7 +48,6 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
       if (!this._bpmn) {
         this._bpmn = new BpmnViewer({
           additionalModules: [
-            camundaExtensionModule,
             RobotModule,
             ModelingModule,
             TooltipsModule,
@@ -88,7 +87,7 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
             config?.incidents || []
           );
         }
-        if (config.activities) {
+        if (config.activities && config.path !== false) {
           const flow = this._flow || [];
           this._flow = renderSequenceFlow(this._bpmn, config.activities);
           clearSequenceFlow(flow);
@@ -129,14 +128,26 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
             }
           }
         }
-        const svg: string = await this._bpmn.saveSVG();
+        const svg: string = (await this._bpmn.saveSVG())["svg"];
         model.setData({
           data: {
             ...model.data,
             'image/svg+xml': svg,
-          },
+           },
           metadata: model.metadata,
         });
+        if (!!config.activities) {
+          setTimeout(async () => {
+            model.setData({
+              data: {
+                ...model.data,
+                'image/svg+xml': svg,
+                'image/png': (await html2canvas(this.node, {"backgroundColor": null, "ignoreElements": function (el) { return el.tagName === "SVG"}})).toDataURL().split(';base64,')[1]
+              },
+              metadata: model.metadata,
+            });
+          }, 1000);
+        }
       }
     } catch (e) {
       console.warn(e);
