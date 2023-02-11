@@ -138,10 +138,15 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
         });
         if (!!config.activities) {
           setTimeout(async () => {
+            const update = {
+                ...model.data,
+            };
+            if (!!update["image/svg+xml"]) {
+                delete update["image/svg+xml"];
+            }
             model.setData({
               data: {
-                ...model.data,
-                'image/svg+xml': svg,
+                ...update,
                 'image/png': (await html2canvas(this.node, {"backgroundColor": null, "ignoreElements": function (el) { return el.tagName === "SVG"}})).toDataURL().split(';base64,')[1]
               },
               metadata: model.metadata,
