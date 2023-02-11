@@ -11,7 +11,8 @@ import {
   renderActivities,
   renderSequenceFlow,
 } from './utils';
-import html2canvas from 'html2canvas';
+//import html2canvas from 'html2canvas';
+import * as htmlToImage from 'html-to-image';
 
 import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json';
 
@@ -132,22 +133,25 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
         model.setData({
           data: {
             ...model.data,
-            'image/svg+xml': svg,
+            "image/svg+xml": svg,
            },
           metadata: model.metadata,
         });
         if (!!config.activities) {
+         console.log(await htmlToImage.toSvg(this.node, {
+                  filter: (node: HTMLElement) => {
+                    return !!node && !!node.tagName && node.tagName.toLowerCase() !== "svg";
+                  },
+                }));
           setTimeout(async () => {
-            const update = {
-                ...model.data,
-            };
-            if (!!update["image/svg+xml"]) {
-                delete update["image/svg+xml"];
-            }
             model.setData({
               data: {
-                ...update,
-                'image/png': (await html2canvas(this.node, {"backgroundColor": null, "ignoreElements": function (el) { return el.tagName === "SVG"}})).toDataURL().split(';base64,')[1]
+                ...model.data,
+                'image/png': (await htmlToImage.toPng(this.node, {
+                  filter: (node: HTMLElement) => {
+                    return !!node && !!node.tagName && node.tagName.toLowerCase() !== "svg";
+                  },
+                })).substring(22)
               },
               metadata: model.metadata,
             });

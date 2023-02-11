@@ -49,6 +49,7 @@
     "bpmn-moddle": "^8.0.1",
     "camunda-bpmn-moddle": "^7.0.1",
     "diagram-js": "^11.9.0",
+    "html-to-image": "^1.11.11",
     "html2canvas": "^1.4.1",
     "svg-curves": "^1.0.0"
   },
