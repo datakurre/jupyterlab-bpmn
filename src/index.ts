@@ -48,11 +48,7 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
       let resized = false;
       if (!this._bpmn) {
         this._bpmn = new BpmnViewer({
-          additionalModules: [
-            RobotModule,
-            ModelingModule,
-            TooltipsModule,
-          ],
+          additionalModules: [RobotModule, ModelingModule, TooltipsModule],
           moddleExtensions: {
             camunda: camundaModdle,
           },
@@ -105,8 +101,14 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
         if (this._bpmn && config.zoom) {
           if (config.zoom !== this._zoom) {
             const registry = this._bpmn.get('elementRegistry');
-            if (registry.get(config.zoom)) {
-              this._bpmn.get('canvas').zoom(1.0, registry.get(config.zoom));
+            let focusOnElement = false;
+            try {
+              focusOnElement = !!registry.get(config.zoom);
+            } catch (e) {
+              // pass
+            }
+            if (focusOnElement) {
+              this._bpmn.get('canvas').zoom('1.0', registry.get(config.zoom));
             } else {
               this._bpmn.get('canvas').zoom('fit-viewport', 'auto');
               if (config.zoom !== 'fit-viewport') {
@@ -129,32 +131,51 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
             }
           }
         }
-        const svg: string = (await this._bpmn.saveSVG())["svg"];
+        const svg: string = (await this._bpmn.saveSVG())['svg'];
         model.setData({
           data: {
             ...model.data,
-            "image/svg+xml": svg,
-           },
+            'image/svg+xml': svg,
+          },
           metadata: model.metadata,
         });
+        /* @ts-ignore */
         if (!!config.activities) {
-         console.log(await htmlToImage.toSvg(this.node, {
-                  filter: (node: HTMLElement) => {
-                    return !!node && !!node.tagName && node.tagName.toLowerCase() !== "svg";
-                  },
-                }));
           setTimeout(async () => {
-            model.setData({
-              data: {
-                ...model.data,
-                'image/png': (await htmlToImage.toPng(this.node, {
-                  filter: (node: HTMLElement) => {
-                    return !!node && !!node.tagName && node.tagName.toLowerCase() !== "svg";
-                  },
-                })).substring(22)
-              },
-              metadata: model.metadata,
-            });
+            const viewbox: any = this._bpmn.get('canvas').viewbox();
+            const overlay =
+              !!this.node && this.node.querySelector('.djs-container');
+            if (!!overlay) {
+              const image = (
+                await htmlToImage.toPng(overlay as any, {
+                  pixelRatio: 3,
+                  skipFonts: true,
+                  filter: (node: any) =>
+                    !!node &&
+                    !!node.tagName &&
+                    !['svg', 'ul'].includes(node.tagName.toLowerCase()),
+                })
+              ).substring(22);
+              const viewBox = new RegExp(
+                /viewBox="(\d+) (\d+) (\d+) (\d+)"/
+              ).exec(svg);
+              model.setData({
+                data: {
+                  ...model.data,
+                  'image/svg+xml':
+                    svg
+                      .substring(0, svg.length - 6)
+                      .replace(
+                        viewBox[0],
+                        `viewBox="${viewbox.x} ${viewbox.y} ${
+                          viewbox.outer.width / viewbox.scale
+                        } ${viewbox.outer.height / viewbox.scale}"`
+                      ) +
+                    `<image x="${viewbox.x}" width="100%" y="${viewbox.y}" href="data:image/png;base64,${image}" /></svg>`,
+                },
+                metadata: model.metadata,
+              });
+            }
           }, 1000);
         }
       }

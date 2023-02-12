@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-bpmn",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "A JupyterLab extension for rendering BPMN files",
   "keywords": [
     "jupyter",
@@ -50,7 +50,6 @@
     "camunda-bpmn-moddle": "^7.0.1",
     "diagram-js": "^11.9.0",
     "html-to-image": "^1.11.11",
-    "html2canvas": "^1.4.1",
     "svg-curves": "^1.0.0"
   },
   "devDependencies": {

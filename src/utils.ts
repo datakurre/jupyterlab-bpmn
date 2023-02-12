@@ -16,6 +16,20 @@ interface IXY {
   y: number;
 }
 
+let INITIALIZED = false;
+
+// This is required to have badge numbers on html-to-image export. For some reason
+// export lost node text content for badge nodes. Only pseudo element content worked.
+const initialize = () => {
+  if (!INITIALIZED) {
+    INITIALIZED = true;
+    document.styleSheets[0].insertRule(
+      '.bpmn-badge::before { content: attr(data-value); }',
+      0
+    );
+  }
+};
+
 const getConnections = (
   activities: any[],
   elementRegistry: any
@@ -180,7 +194,7 @@ const getDottedConnections = (connections: any[]): any[] => {
 export const renderSequenceFlow = (viewer: any, activities: any[]): any[] => {
   const registry = viewer.get('elementRegistry');
   const canvas = viewer.get('canvas');
-  const layer = canvas.getLayer('processInstance', 1);
+  const layer = canvas.getActiveLayer();
   const connections = getConnections(activities ?? [], registry);
   const paths = [];
 
@@ -253,6 +267,8 @@ export const renderActivities = (
   const incident: Record<string, number> = {};
   const message: Record<string, string> = {};
 
+  initialize();
+
   for (const activity of activities) {
     const id = activity.activityId;
     historic[id] = historic[id] ? historic[id] + 1 : 1;
@@ -274,12 +290,12 @@ export const renderActivities = (
   }
 
   const overlays = viewer.get('overlays');
-  const old: any[] = overlays.get({ type: 'badge' });
+  const old: any[] = overlays.get({ type: 'bpmn-badge' });
 
   for (const id of Object.keys(historic)) {
     const overlay = document.createElement('span');
-    overlay.innerText = `${historic[id]}`;
-    overlay.className = 'badge';
+    overlay.setAttribute('data-value', `${historic[id]}`);
+    overlay.className = 'bpmn-badge';
     overlay.style.cssText = `
 background: lightgray;
 border: 1px solid #143d52;
@@ -288,6 +304,7 @@ color: #143d52;
 display: inline-block;
 min-width: 10px;
 padding: 3px 7px;
+font-family: sans-serif:
 font-size: 12px;
 font-weight: bold;
 line-height: 1;
@@ -296,8 +313,8 @@ white-space: nowrap;
 vertical-align: middle;
 border-radius: 10px;
  `;
-    overlays.add(id.split('#')[0], 'badge', {
-        position: {
+    overlays.add(id.split('#')[0], 'bpmn-badge', {
+      position: {
         bottom: 17,
         right: 10,
       },
@@ -306,8 +323,8 @@ border-radius: 10px;
   }
   for (const id of Object.keys(active)) {
     const activeOverlay = document.createElement('span');
-    activeOverlay.innerText = `${active[id]}`;
-    activeOverlay.className = 'badge';
+    activeOverlay.setAttribute('data-value', `${active[id]}`);
+    activeOverlay.className = 'bpmn-badge';
     activeOverlay.style.cssText = `
 background: #70b8db;
 border: 1px solid #143d52;
@@ -316,6 +333,7 @@ color: #143d52;
 display: inline-block;
 min-width: 10px;
 padding: 3px 7px;
+font-family: sans-serif:
 font-size: 12px;
 font-weight: bold;
 line-height: 1;
@@ -324,7 +342,7 @@ white-space: nowrap;
 vertical-align: middle;
 border-radius: 10px;
  `;
-    overlays.add(id.split('#')[0], 'badge', {
+    overlays.add(id.split('#')[0], 'bpmn-badge', {
       position: {
         bottom: 17,
         left: -10,
@@ -335,9 +353,9 @@ border-radius: 10px;
   for (const id of Object.keys(incident)) {
     if (incident[id]) {
       const incidentOverlay = document.createElement('span');
-      incidentOverlay.innerText = `${incident[id]}`;
+      incidentOverlay.setAttribute('data-value', `${incident[id]}`);
       incidentOverlay.title = `${message[id]}`;
-      incidentOverlay.className = 'badge';
+      incidentOverlay.className = 'bpmn-badge';
       incidentOverlay.style.cssText = `
 background: #b94a48;
 border: 1px solid #140808;
@@ -346,6 +364,7 @@ color: #ffffff;
 display: inline-block;
 min-width: 10px;
 padding: 3px 7px;
+font-family: sans-serif:
 font-size: 12px;
 font-weight: bold;
 line-height: 1;
@@ -354,7 +373,7 @@ white-space: nowrap;
 vertical-align: middle;
 border-radius: 10px;
  `;
-      overlays.add(id.split('#')[0], 'badge', {
+      overlays.add(id.split('#')[0], 'bpmn-badge', {
         position: {
           bottom: 17,
           right: 10,
