@@ -18,7 +18,7 @@
   },
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
-    "style/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
+    "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -48,7 +48,7 @@
     "prettier:base": "prettier \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
     "prettier:check": "npm run prettier:base --check",
     "stylelint": "npm run stylelint:check --fix",
-    "stylelint:check": "stylelint --cache \"style/*.css\"",
+    "stylelint:check": "stylelint --cache \"style/**/*.css\"",
     "test": "jest --coverage",
     "watch": "run-p watch:src watch:labextension",
     "watch:src": "tsc -w",
