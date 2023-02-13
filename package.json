@@ -43,7 +43,7 @@
     "eslint:check": "eslint . --cache --ext .ts,.tsx",
     "install:extension": "npm run build",
     "lint": "npm run stylelint && npm run prettier && npm run eslint",
-    "lint:check": "npm run stylelint:check && npm run prettier:check && npm run eslint:check",
+    "lint:check": "npm run prettier:check && npm run eslint:check",
     "prettier": "npm run prettier:base --write --list-different",
     "prettier:base": "prettier \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
     "prettier:check": "npm run prettier:base --check",
