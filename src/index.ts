@@ -144,9 +144,11 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
             ...model.data,
             'image/svg+xml': svg.replace(
               viewBox?.[0] || '',
-              `viewBox="${viewbox.x} ${viewbox.y} ${
-                viewbox.outer.width / viewbox.scale
-              } ${viewbox.outer.height / viewbox.scale}"`
+              `viewBox="${
+                viewbox.x + viewbox.outer.width / viewbox.scale / 4
+              } ${viewbox.y} ${viewbox.outer.width / viewbox.scale / 2} ${
+                viewbox.outer.height / viewbox.scale
+              }"`
             ),
           },
           metadata: model.metadata,
@@ -174,11 +176,13 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
                       .substring(0, svg.length - 6)
                       .replace(
                         viewBox?.[0] || '',
-                        `viewBox="${viewbox.x} ${viewbox.y} ${
-                          viewbox.outer.width / viewbox.scale
+                        `viewBox="${
+                          viewbox.x + viewbox.outer.width / viewbox.scale / 4
+                        } ${viewbox.y} ${
+                          viewbox.outer.width / viewbox.scale / 2
                         } ${viewbox.outer.height / viewbox.scale}"`
                       ) +
-                    `<image x="${viewbox.x}" width="100%" y="${viewbox.y}" href="data:image/png;base64,${image}" /></svg>`,
+                    `<image x="${viewbox.x}" width="200%" y="${viewbox.y}" href="data:image/png;base64,${image}" /></svg>`,
                 },
                 metadata: model.metadata,
               });
