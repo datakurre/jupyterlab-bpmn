@@ -77,18 +77,6 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
         const config = JSON.parse(
           (model.data['application/bpmn+json'] as string) || '{}'
         );
-        if (config.activities || config.incidents) {
-          renderActivities(
-            this._bpmn,
-            config?.activities || [],
-            config?.incidents || []
-          );
-        }
-        if (config.activities && config.path !== false) {
-          const flow = this._flow || [];
-          this._flow = renderSequenceFlow(this._bpmn, config.activities);
-          clearSequenceFlow(flow);
-        }
         if (config.style) {
           for (const name of Object.keys(config.style)) {
             this.node.style.setProperty(name, config.style[name]);
@@ -120,6 +108,11 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
         } else if (this._bpmn && resized) {
           this._bpmn.get('canvas').zoom('fit-viewport', 'auto');
         }
+        if (config.activities && config.path !== false) {
+          const flow = this._flow || [];
+          this._flow = renderSequenceFlow(this._bpmn, config.activities);
+          clearSequenceFlow(flow);
+        }
         if (config.colors) {
           const modeling = this._bpmn.get('modeling');
           const registry = this._bpmn.get('elementRegistry');
@@ -132,17 +125,34 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
           }
         }
         const svg: string = (await this._bpmn.saveSVG())['svg'];
+        const viewbox: any = this._bpmn
+          ? this._bpmn.get('canvas').viewbox()
+          : {};
+        const viewBox = new RegExp(/viewBox="(\d+) (\d+) (\d+) (\d+)"/).exec(
+          svg
+        );
+        // Activities must be rendered last to prevent affecting fit-viewport or viewbox
+        if (config.activities || config.incidents) {
+          renderActivities(
+            this._bpmn,
+            config?.activities || [],
+            config?.incidents || []
+          );
+        }
         model.setData({
           data: {
             ...model.data,
-            'image/svg+xml': svg,
+            'image/svg+xml': svg.replace(
+              viewBox?.[0] || '',
+              `viewBox="${viewbox.x} ${viewbox.y} ${
+                viewbox.outer.width / viewbox.scale
+              } ${viewbox.outer.height / viewbox.scale}"`
+            ),
           },
           metadata: model.metadata,
         });
-        /* @ts-ignore */
         if (!!config.activities) {
           setTimeout(async () => {
-            const viewbox: any = this._bpmn.get('canvas').viewbox();
             const overlay =
               !!this.node && this.node.querySelector('.djs-container');
             if (!!overlay) {
@@ -156,9 +166,6 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
                     !['svg', 'ul'].includes(node.tagName.toLowerCase()),
                 })
               ).substring(22);
-              const viewBox = new RegExp(
-                /viewBox="(\d+) (\d+) (\d+) (\d+)"/
-              ).exec(svg);
               model.setData({
                 data: {
                   ...model.data,
@@ -166,7 +173,7 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
                     svg
                       .substring(0, svg.length - 6)
                       .replace(
-                        viewBox[0],
+                        viewBox?.[0] || '',
                         `viewBox="${viewbox.x} ${viewbox.y} ${
                           viewbox.outer.width / viewbox.scale
                         } ${viewbox.outer.height / viewbox.scale}"`
@@ -176,7 +183,7 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
                 metadata: model.metadata,
               });
             }
-          }, 1000);
+          }, 500);
         }
       }
     } catch (e) {
@@ -185,13 +192,13 @@ export class OutputWidget extends Widget implements IRenderMime.IRenderer {
     return Promise.resolve();
   }
 
-  private _xml: string;
-  private _json: string;
-  private _bpmn: any;
-  private _flow: any;
-  private _height: string;
-  private _zoom: string;
-  private _mimeType: string;
+  private _xml: string = '';
+  private _json: string = '';
+  private _bpmn: any = '';
+  private _flow: any = '';
+  private _height: string = '';
+  private _zoom: string = '';
+  private _mimeType: string = '';
 }
 
 /**
