@@ -19,6 +19,6 @@ dependencies:
   - wheel
   # additional packages for demos
   - ipywidgets
+  - pandas
   # for Camunda
   - openjdk
-  - supervisor
