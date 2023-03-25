@@ -279,7 +279,6 @@ export const renderActivities = (
 
   for (const incident_ of incidents) {
     const id = incident_.activityId;
-    active[id] = active[id] ? active[id] + 1 : 1;
     incident[id] = incident[id] ? incident[id] + 1 : 1;
     message[id] = message[id]
       ? `${message[id]}\n${incident_.incidentMessage || ''}`.replace(
