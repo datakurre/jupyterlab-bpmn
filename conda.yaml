@@ -1,0 +1,8 @@
+channels:
+  - conda-forge
+dependencies:
+  - jupyterlab
+  - nodejs
+  - pip:
+    - build
+    - -e  /home/datakurre/Work/github/datakurre/jupyterlab-bpmn

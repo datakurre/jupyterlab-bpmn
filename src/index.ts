@@ -230,7 +230,7 @@ const extension: IRenderMime.IExtension = {
     },
   ],
   documentWidgetFactoryOptions: {
-    name: 'JupyterLab BPMN viewer',
+    name: 'A JupyterLab extension for rendering BPMN files',
     primaryFileType: 'bpmn',
     fileTypes: ['bpmn'],
     defaultFor: ['bpmn'],
